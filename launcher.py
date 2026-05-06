@@ -31,6 +31,7 @@ class Launcher:
         # Menu Definitions
         self.main_menu = [
             {"title": "Games", "icon": "🎮", "action": self.enter_games},
+            {"title": "AI Assistant", "icon": "🤖", "action": self.run_ai_chat},
             {"title": "System Info", "icon": "📊", "action": self.run_sys_info},
             {"title": "Task Manager", "icon": "📝", "action": self.run_task_manager},
             {"title": "Pocket Config", "icon": "🛠️", "action": self.enter_config},
@@ -135,6 +136,11 @@ class Launcher:
     def run_galacta(self):
         from games import galacta
         galacta.main(self.disp)
+        self.__init_gpio__()
+
+    def run_ai_chat(self):
+        from ai import gemini_chat
+        gemini_chat.main(self.disp)
         self.__init_gpio__()
 
     def run_sys_info(self):

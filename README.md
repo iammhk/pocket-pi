@@ -7,6 +7,7 @@ A lightweight handheld gaming and utility platform built for the Raspberry Pi Ze
 - **Custom ST7735 Driver**: Optimized Python driver for the 1.44" (128x128) TFT LCD.
 - **Rotation Support**: Easy screen orientation management (0, 90, 180, 270 degrees).
 - **Pong Demo**: A smooth 50 FPS implementation of the classic Ping-Pong game using the HAT's joystick and buttons.
+- **AI Assistant**: Integrated Gemini 3 Flash chatbot for on-the-go assistance (requires WiFi and API Key).
 
 ## 🛠️ Hardware Requirements
 - Raspberry Pi Zero / Zero 2 W
@@ -36,8 +37,15 @@ sudo apt-get install python3-pil python3-spidev python3-rpi.gpio -y
 ## 🎮 Usage
 To run the Pong game demo:
 ```bash
-sudo python3 pong.py
+sudo python3 launcher.py
 ```
+
+### AI Assistant Setup
+To use the AI Assistant:
+1. Obtain a Gemini API Key from the [Google AI Studio](https://aistudio.google.com/).
+2. Edit `pocket_config.json` in the root directory.
+3. Replace `YOUR_API_KEY_HERE` with your actual API Key.
+4. Ensure your Pocket Pi is connected to WiFi.
 
 ### Controls
 - **Joystick UP/DOWN**: Move the player paddle.

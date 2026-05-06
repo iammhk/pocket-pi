@@ -111,15 +111,34 @@ class Launcher:
         draw.rectangle([0, 0, 128, 20], fill=(40, 40, 80))
         draw.text((35, 4), title, fill="white")
         
-        # Items
+        # Items with Scrolling Logic
+        visible_items = 5
+        offset = 0
+        if self.selected_index >= visible_items:
+            offset = self.selected_index - (visible_items - 1)
+
         for i, item in enumerate(self.current_menu):
-            y = 30 + i * 18
+            # Calculate relative position
+            idx_rel = i - offset
+            y = 30 + idx_rel * 18
+            
+            # Clip items outside the visible area
+            if y < 25 or y > 120:
+                continue
+                
             color = "white"
             if i == self.selected_index:
                 draw.rectangle([5, y-1, 123, y+16], outline=(0, 255, 255), width=1)
                 color = (0, 255, 255)
             
             draw.text((15, y+1), f"{item['icon']} {item['title']}", fill=color)
+            
+        # Scroll Indicators
+        if len(self.current_menu) > visible_items:
+            if offset > 0:
+                draw.polygon([(64, 25), (60, 29), (68, 29)], fill="gray") # Up arrow
+            if offset < len(self.current_menu) - visible_items:
+                draw.polygon([(64, 125), (60, 121), (68, 121)], fill="gray") # Down arrow
             
         self.disp.display(image)
 

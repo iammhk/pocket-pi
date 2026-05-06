@@ -51,6 +51,7 @@ class Launcher:
 
         self.config_menu = [
             {"title": "WiFi Status", "icon": "📡", "action": self.run_wifi_status},
+            {"title": "Bluetooth", "icon": "🔵", "action": self.run_bt_status},
             {"title": "Rotate Screen", "icon": "🔄", "action": self.run_rotate_config},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
         ]
@@ -178,6 +179,32 @@ class Launcher:
             if GPIO.input(KEY3) == GPIO.LOW or GPIO.input(KEY1) == GPIO.LOW:
                 running = False
             time.sleep(0.5)
+
+    def run_bt_status(self):
+        running = True
+        while running:
+            image = Image.new("RGB", (128, 128), (10, 10, 30))
+            draw = ImageDraw.Draw(image)
+            
+            bt_info = os.popen("bluetoothctl show").read()
+            is_powered = "Powered: yes" in bt_info
+            status = "ON" if is_powered else "OFF"
+            
+            draw.text((10, 10), "BLUETOOTH", fill="cyan")
+            draw.line([(10, 25), (118, 25)], fill="gray")
+            draw.text((10, 40), f"Status: {status}", fill="white")
+            draw.text((10, 70), "Key1 to TOGGLE", fill="green")
+            draw.text((10, 100), "Key3 to Back", fill="yellow")
+            
+            self.disp.display(image)
+            
+            if GPIO.input(KEY1) == GPIO.LOW:
+                new_state = "off" if is_powered else "on"
+                os.system(f"bluetoothctl power {new_state}")
+                time.sleep(0.5)
+            elif GPIO.input(KEY3) == GPIO.LOW:
+                running = False
+            time.sleep(0.1)
 
     def run_rotate_config(self):
         rotations = [0, 90, 180, 270]

@@ -26,14 +26,23 @@ class Launcher:
         self.width = 128
         self.height = 128
         
-        # Menu Items
-        self.menu_items = [
-            {"title": "Ping Pong", "icon": "🏓", "action": self.run_pong},
+        # Menu Definitions
+        self.main_menu = [
+            {"title": "Games", "icon": "🎮", "action": self.enter_games},
             {"title": "System Info", "icon": "📊", "action": self.run_sys_info},
             {"title": "Reboot", "icon": "🔄", "action": self.reboot_pi},
             {"title": "Shutdown", "icon": "🔌", "action": self.shutdown_pi},
             {"title": "Exit GUI", "icon": "🚪", "action": exit}
         ]
+        
+        self.games_menu = [
+            {"title": "Ping Pong", "icon": "🏓", "action": self.run_pong},
+            {"title": "Snake", "icon": "🐍", "action": self.run_snake},
+            {"title": "Galacta", "icon": "🚀", "action": self.run_galacta},
+            {"title": "Back", "icon": "⬅️", "action": self.enter_main}
+        ]
+        
+        self.current_menu = self.main_menu
         self.selected_index = 0
         self.__init_gpio__()
 
@@ -41,6 +50,14 @@ class Launcher:
         GPIO.setmode(GPIO.BCM)
         for pin in [UP, DOWN, PRESS, KEY1, KEY2, KEY3]:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    def enter_games(self):
+        self.current_menu = self.games_menu
+        self.selected_index = 0
+
+    def enter_main(self):
+        self.current_menu = self.main_menu
+        self.selected_index = 0
 
     def show_splash(self):
         try:
@@ -56,12 +73,13 @@ class Launcher:
         draw = ImageDraw.Draw(image)
         
         # Header
+        title = "POCKET PI" if self.current_menu == self.main_menu else "GAMES"
         draw.rectangle([0, 0, 128, 20], fill=(40, 40, 80))
-        draw.text((35, 4), "POCKET PI", fill="white")
+        draw.text((35, 4), title, fill="white")
         
         # Items
-        for i, item in enumerate(self.menu_items):
-            y = 30 + i * 18 # Tighter spacing for more items
+        for i, item in enumerate(self.current_menu):
+            y = 30 + i * 18
             color = "white"
             if i == self.selected_index:
                 draw.rectangle([5, y-1, 123, y+16], outline=(0, 255, 255), width=1)
@@ -72,9 +90,19 @@ class Launcher:
         self.disp.display(image)
 
     def run_pong(self):
-        import pong
+        from games import pong
         pong.main()
-        self.__init_gpio__() # Restore pins
+        self.__init_gpio__()
+
+    def run_snake(self):
+        from games import snake
+        snake.main()
+        self.__init_gpio__()
+
+    def run_galacta(self):
+        from games import galacta
+        galacta.main()
+        self.__init_gpio__()
 
     def run_sys_info(self):
         print("Opening System Info...")
@@ -135,13 +163,13 @@ class Launcher:
 
             if time.time() - last_move > 0.15:
                 if GPIO.input(UP) == GPIO.LOW:
-                    self.selected_index = (self.selected_index - 1) % len(self.menu_items)
+                    self.selected_index = (self.selected_index - 1) % len(self.current_menu)
                     last_move = time.time()
                 elif GPIO.input(DOWN) == GPIO.LOW:
-                    self.selected_index = (self.selected_index + 1) % len(self.menu_items)
+                    self.selected_index = (self.selected_index + 1) % len(self.current_menu)
                     last_move = time.time()
                 elif GPIO.input(PRESS) == GPIO.LOW:
-                    self.menu_items[self.selected_index]["action"]()
+                    self.current_menu[self.selected_index]["action"]()
                     last_move = time.time()
                     
             time.sleep(0.05)

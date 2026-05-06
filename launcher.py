@@ -156,10 +156,18 @@ class Launcher:
             self.draw_menu()
             
             # Global Key Listeners
-            if GPIO.input(KEY2) == GPIO.LOW: # Shortcut to Sys Info
-                self.run_sys_info()
-            if GPIO.input(KEY3) == GPIO.LOW: # Instant Shutdown
-                self.shutdown_pi()
+            if GPIO.input(KEY1) == GPIO.LOW: # OK / Enter
+                self.current_menu[self.selected_index]["action"]()
+                last_move = time.time()
+                
+            if GPIO.input(KEY2) == GPIO.LOW: # Main Menu (Home)
+                self.enter_main()
+                last_move = time.time()
+                
+            if GPIO.input(KEY3) == GPIO.LOW: # Back
+                if self.current_menu != self.main_menu:
+                    self.enter_main()
+                last_move = time.time()
 
             if time.time() - last_move > 0.15:
                 if GPIO.input(UP) == GPIO.LOW:
@@ -168,7 +176,7 @@ class Launcher:
                 elif GPIO.input(DOWN) == GPIO.LOW:
                     self.selected_index = (self.selected_index + 1) % len(self.current_menu)
                     last_move = time.time()
-                elif GPIO.input(PRESS) == GPIO.LOW:
+                elif GPIO.input(PRESS) == GPIO.LOW: # Also OK
                     self.current_menu[self.selected_index]["action"]()
                     last_move = time.time()
                     

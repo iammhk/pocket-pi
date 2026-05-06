@@ -9,7 +9,7 @@ from drivers.st7735 import ST7735
 
 # Pins
 UP, DOWN, LEFT, RIGHT = 6, 19, 5, 26
-KEY1 = 21
+KEY1, KEY2, KEY3 = 21, 20, 16
 
 class SnakeGame:
     def __init__(self, display):
@@ -99,10 +99,11 @@ def main():
             game.update()
             game.draw()
             time.sleep(0.1) # Slower for snake
-            if game.game_over and GPIO.input(21) == GPIO.LOW:
+            if game.game_over and GPIO.input(KEY1) == GPIO.LOW:
                 game.reset()
-            # If Key2 is pressed, exit game
-            if GPIO.input(20) == GPIO.LOW:
+            
+            # Key 3: Back / Exit
+            if GPIO.input(KEY3) == GPIO.LOW:
                 break
     except KeyboardInterrupt:
         pass

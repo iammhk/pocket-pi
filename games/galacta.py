@@ -9,8 +9,8 @@ from drivers.st7735 import ST7735
 
 # Pins
 LEFT, RIGHT = 5, 26
-PRESS = 13 # Shoot
-KEY1 = 21 # Back
+PRESS = 13 # Also Shoot
+KEY1, KEY2, KEY3 = 21, 20, 16
 
 class GalactaGame:
     def __init__(self, display):
@@ -29,7 +29,7 @@ class GalactaGame:
 
     def update(self):
         if self.game_over:
-            if GPIO.input(13) == GPIO.LOW: # Press to restart
+            if GPIO.input(KEY1) == GPIO.LOW or GPIO.input(PRESS) == GPIO.LOW: # Press to restart
                 self.reset()
             return
 
@@ -39,7 +39,7 @@ class GalactaGame:
         self.player_x = max(0, min(120, self.player_x))
 
         # Shooting
-        if GPIO.input(PRESS) == GPIO.LOW:
+        if GPIO.input(PRESS) == GPIO.LOW or GPIO.input(KEY1) == GPIO.LOW:
             if len(self.bullets) < 5:
                 self.bullets.append([self.player_x + 4, self.player_y])
                 time.sleep(0.1) # Debounce
@@ -108,7 +108,9 @@ def main():
             game.update()
             game.draw()
             time.sleep(0.03)
-            if GPIO.input(21) == GPIO.LOW: # Key1 to exit
+            
+            # Key 3: Back / Exit
+            if GPIO.input(KEY3) == GPIO.LOW:
                 break
     except KeyboardInterrupt:
         pass

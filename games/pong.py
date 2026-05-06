@@ -10,7 +10,9 @@ from drivers.st7735 import ST7735
 # Button Pins
 UP_PIN = 6
 DOWN_PIN = 19
-KEY1_PIN = 21 # Reset game?
+KEY1_PIN = 21 # Enter / Retry
+KEY2_PIN = 20
+KEY3_PIN = 16 # Back
 
 class PongGame:
     def __init__(self, display):
@@ -144,6 +146,10 @@ def main():
             game.update()
             game.draw()
             time.sleep(0.02) # ~50 FPS
+            
+            # Key 3: Back / Exit
+            if GPIO.input(KEY3_PIN) == GPIO.LOW:
+                break
     except KeyboardInterrupt:
         print("\nStopping game.")
         disp.clear()

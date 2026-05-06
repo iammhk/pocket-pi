@@ -1,4 +1,5 @@
-# This file is used to ignore files in the git repository for the pocket-pi project.
+# .gitignore
+# This file is part of the actual project. It specifies which files and directories Git should ignore.
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -49,9 +50,9 @@ nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
-.hypothesis/
+.cwd/
 .pytest_cache/
-pytestdebuglog.txt
+pytestdebug.log
 
 # Translations
 *.mo
@@ -86,27 +87,28 @@ ipython_config.py
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the Python version is
-#   controlled by the user. For a specific project, you might want to check them in.
+#   controlled by the consumer or a higher level tool.
 # .python-version
 
 # pipenv
-#   According to pypa/pipenv#1191, it is recommended to include Pipfile.lock in version control.
+#   According to pypa/pipenv#1181, it is recommended to include Pipfile.lock in version control.
 #   However, in case of collaboration, if having platform-specific dependencies or dependencies
 #   having no cross-platform support, pipenv may install dependencies that don't work, or even
-#   fail to install, on other platforms.
+#   fail to install all dependencies.
 #Pipfile.lock
 
 # poetry
-#   Similar to Pipenv, see https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   poetry.lock
 
 # pdm
-#   Similar to Pipenv, see https://pdm.fming.dev/#working-with-version-control
-.pdm.toml
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+# pdm.lock
+#   pdm envs
 .pdm-python
 .pdm-build/
 
-# PEP 582; used by e.g. github.com/frenzy-one/python-pdm-pep582
+# PEP 582; used by e.g. github.com/pdm-project/pdm
 __pypackages__/
 
 # Celery stuff
@@ -143,7 +145,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# pytype static type analyzer
+# pytype static analyzer
 .pytype/
 
 # Cython debug symbols
@@ -151,3 +153,6 @@ cython_debug/
 
 # PyCharm
 .idea/
+
+# VS Code
+.vscode/

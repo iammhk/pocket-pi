@@ -30,6 +30,7 @@ class ST7735:
         
         self.width = 128
         self.height = 128
+        self.rotation = 0 # Default rotation
         # Standard offsets for Waveshare 1.44" 128x128
         self.column_offset = 2
         self.row_offset = 3
@@ -71,7 +72,7 @@ class ST7735:
         
         self.command(0xC5); self.data(0x0E) # VCOM
         
-        self.command(0x36); self.data(0x08 | 0x40 | 0x80) # MADCTL: RGB, MX, MY (0xC8)
+        self.rotate(self.rotation)
         
         self.command(0xE0) # Gamma +
         self.data(0x02); self.data(0x1c); self.data(0x07); self.data(0x12)
@@ -87,6 +88,26 @@ class ST7735:
         
         self.command(0x3A); self.data(0x05) # 16-bit color
         self.command(0x29) # Display ON
+
+    def rotate(self, rotation):
+        """ Set the display rotation: 0, 90, 180, or 270 degrees """
+        self.rotation = rotation
+        if self.rotation == 0:
+            self.command(0x36); self.data(0xC8) # MX, MY, RGB
+            self.column_offset = 2
+            self.row_offset = 3
+        elif self.rotation == 90:
+            self.command(0x36); self.data(0xA8) # MY, MV, RGB
+            self.column_offset = 3
+            self.row_offset = 2
+        elif self.rotation == 180:
+            self.command(0x36); self.data(0x08) # RGB
+            self.column_offset = 2
+            self.row_offset = 1
+        elif self.rotation == 270:
+            self.command(0x36); self.data(0x68) # MX, MV, RGB
+            self.column_offset = 1
+            self.row_offset = 2
 
     def set_window(self, x0, y0, x1, y1):
         x0 += self.column_offset

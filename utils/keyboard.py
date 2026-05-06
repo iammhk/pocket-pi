@@ -25,6 +25,11 @@ class VirtualKeyboard:
         self.row = 0
         self.col = 0
         self.text = ""
+        
+        # Initialize pins
+        GPIO.setmode(GPIO.BCM)
+        for pin in [UP, DOWN, LEFT, RIGHT, KEY1, KEY2, KEY3]:
+            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     def draw(self):
         image = Image.new("RGB", (self.width, self.height), (10, 10, 10))

@@ -12,6 +12,8 @@ from drivers.st7735 import ST7735
 # Button Pins
 UP = 6
 DOWN = 19
+LEFT = 5
+RIGHT = 26
 PRESS = 13
 KEY1 = 21
 KEY2 = 20
@@ -63,7 +65,7 @@ class Launcher:
 
     def __init_gpio__(self):
         GPIO.setmode(GPIO.BCM)
-        for pin in [UP, DOWN, PRESS, KEY1, KEY2, KEY3]:
+        for pin in [UP, DOWN, LEFT, RIGHT, PRESS, KEY1, KEY2, KEY3]:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     def enter_games(self):

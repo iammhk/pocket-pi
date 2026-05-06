@@ -30,8 +30,7 @@ class Launcher:
         self.main_menu = [
             {"title": "Games", "icon": "🎮", "action": self.enter_games},
             {"title": "System Info", "icon": "📊", "action": self.run_sys_info},
-            {"title": "Reboot", "icon": "🔄", "action": self.reboot_pi},
-            {"title": "Shutdown", "icon": "🔌", "action": self.shutdown_pi},
+            {"title": "Power", "icon": "⚡", "action": self.enter_power},
             {"title": "Exit GUI", "icon": "🚪", "action": exit}
         ]
         
@@ -39,6 +38,13 @@ class Launcher:
             {"title": "Ping Pong", "icon": "🏓", "action": self.run_pong},
             {"title": "Snake", "icon": "🐍", "action": self.run_snake},
             {"title": "Galacta", "icon": "🚀", "action": self.run_galacta},
+            {"title": "Back", "icon": "⬅️", "action": self.enter_main}
+        ]
+
+        self.power_menu = [
+            {"title": "Restart GUI", "icon": "🔄", "action": self.restart_gui},
+            {"title": "Reboot", "icon": "⚙️", "action": self.reboot_pi},
+            {"title": "Shutdown", "icon": "🔌", "action": self.shutdown_pi},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
         ]
         
@@ -53,6 +59,10 @@ class Launcher:
 
     def enter_games(self):
         self.current_menu = self.games_menu
+        self.selected_index = 0
+
+    def enter_power(self):
+        self.current_menu = self.power_menu
         self.selected_index = 0
 
     def enter_main(self):
@@ -73,7 +83,13 @@ class Launcher:
         draw = ImageDraw.Draw(image)
         
         # Header
-        title = "POCKET PI" if self.current_menu == self.main_menu else "GAMES"
+        if self.current_menu == self.main_menu:
+            title = "POCKET PI"
+        elif self.current_menu == self.games_menu:
+            title = "GAMES"
+        else:
+            title = "POWER"
+            
         draw.rectangle([0, 0, 128, 20], fill=(40, 40, 80))
         draw.text((35, 4), title, fill="white")
         
@@ -138,6 +154,15 @@ class Launcher:
         self.disp.display(image)
         time.sleep(1)
         os.system("sudo reboot")
+
+    def restart_gui(self):
+        self.disp.clear((0, 255, 0))
+        image = Image.new("RGB", (128, 128), "green")
+        draw = ImageDraw.Draw(image)
+        draw.text((30, 60), "RESTARTING...", fill="white")
+        self.disp.display(image)
+        time.sleep(0.5)
+        os.system("sudo systemctl restart pocket-pi.service")
 
     def shutdown_pi(self):
         self.disp.clear((255, 0, 0))

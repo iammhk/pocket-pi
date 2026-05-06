@@ -133,6 +133,10 @@ def main():
     print("Starting Pong Game Demo...")
     disp = ST7735()
     disp.init()
+    
+    # Set rotation (0, 90, 180, or 270)
+    disp.rotate(90)
+    
     game = PongGame(disp)
     
     try:

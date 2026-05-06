@@ -52,6 +52,7 @@ class Launcher:
         self.config_menu = [
             {"title": "WiFi Status", "icon": "📡", "action": self.run_wifi_status},
             {"title": "Bluetooth", "icon": "🔵", "action": self.run_bt_status},
+            {"title": "Keyboard Test", "icon": "⌨️", "action": self.run_keyboard_test},
             {"title": "Rotate Screen", "icon": "🔄", "action": self.run_rotate_config},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
         ]
@@ -205,6 +206,22 @@ class Launcher:
             elif GPIO.input(KEY3) == GPIO.LOW:
                 running = False
             time.sleep(0.1)
+
+    def run_keyboard_test(self):
+        from utils.keyboard import VirtualKeyboard
+        kb = VirtualKeyboard(self.disp)
+        result = kb.get_input()
+        
+        if result is not None:
+            image = Image.new("RGB", (128, 128), "black")
+            draw = ImageDraw.Draw(image)
+            draw.text((10, 40), "You Typed:", fill="cyan")
+            draw.text((10, 60), result, fill="white")
+            draw.text((10, 100), "Key3 to Exit", fill="yellow")
+            self.disp.display(image)
+            while GPIO.input(KEY3) == GPIO.HIGH:
+                time.sleep(0.1)
+        self.__init_gpio__()
 
     def run_rotate_config(self):
         rotations = [0, 90, 180, 270]

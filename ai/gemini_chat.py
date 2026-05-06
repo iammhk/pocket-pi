@@ -103,7 +103,7 @@ class GeminiAssistant:
         }
         
         data = {
-            "model": "gemini-3-flash",
+            "model": "gemini-3-flash-preview",
             "messages": self.history + [{"role": "user", "content": prompt}],
             "temperature": 0.7
         }

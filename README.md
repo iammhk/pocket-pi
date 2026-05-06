@@ -7,7 +7,7 @@ A lightweight handheld gaming and utility platform built for the Raspberry Pi Ze
 - **Custom ST7735 Driver**: Optimized Python driver for the 1.44" (128x128) TFT LCD.
 - **Rotation Support**: Easy screen orientation management (0, 90, 180, 270 degrees).
 - **Pong Demo**: A smooth 50 FPS implementation of the classic Ping-Pong game using the HAT's joystick and buttons.
-- **AI Assistant**: Integrated Gemini 3 Flash chatbot for on-the-go assistance (requires WiFi and API Key).
+- **AI Assistant**: Integrated Gemini 3 Flash Preview chatbot for on-the-go assistance (requires WiFi and API Key).
 
 ## 🛠️ Hardware Requirements
 - Raspberry Pi Zero / Zero 2 W

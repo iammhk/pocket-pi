@@ -13,6 +13,9 @@ from drivers.st7735 import ST7735
 UP = 6
 DOWN = 19
 PRESS = 13
+KEY1 = 21
+KEY2 = 20
+KEY3 = 16
 
 class Launcher:
     def __init__(self):
@@ -27,14 +30,16 @@ class Launcher:
         self.menu_items = [
             {"title": "Ping Pong", "icon": "🏓", "action": self.run_pong},
             {"title": "System Info", "icon": "📊", "action": self.run_sys_info},
-            {"title": "Settings", "icon": "⚙️", "action": self.run_settings},
-            {"title": "Exit", "icon": "🚪", "action": exit}
+            {"title": "Reboot", "icon": "🔄", "action": self.reboot_pi},
+            {"title": "Shutdown", "icon": "🔌", "action": self.shutdown_pi},
+            {"title": "Exit GUI", "icon": "🚪", "action": exit}
         ]
         self.selected_index = 0
-        
-        # Setup GPIO
+        self.__init_gpio__()
+
+    def __init_gpio__(self):
         GPIO.setmode(GPIO.BCM)
-        for pin in [UP, DOWN, PRESS]:
+        for pin in [UP, DOWN, PRESS, KEY1, KEY2, KEY3]:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     def show_splash(self):
@@ -44,7 +49,7 @@ class Launcher:
             time.sleep(2)
         except Exception as e:
             print(f"Splash error: {e}")
-            self.disp.clear((20, 20, 40)) # Fallback color
+            self.disp.clear((20, 20, 40))
 
     def draw_menu(self):
         image = Image.new("RGB", (self.width, self.height), (10, 10, 20))
@@ -56,34 +61,31 @@ class Launcher:
         
         # Items
         for i, item in enumerate(self.menu_items):
-            y = 30 + i * 24
+            y = 30 + i * 18 # Tighter spacing for more items
             color = "white"
             if i == self.selected_index:
-                draw.rectangle([5, y-2, 123, y+20], outline=(0, 255, 255), width=2)
+                draw.rectangle([5, y-1, 123, y+16], outline=(0, 255, 255), width=1)
                 color = (0, 255, 255)
             
-            draw.text((15, y+2), f"{item['icon']} {item['title']}", fill=color)
+            draw.text((15, y+1), f"{item['icon']} {item['title']}", fill=color)
             
         self.disp.display(image)
 
     def run_pong(self):
         import pong
-        # We need to re-initialize pins because pong cleanup might have happened
         pong.main()
-        # After returning, re-init launcher pins
-        self.__init_gpio__()
+        self.__init_gpio__() # Restore pins
 
     def run_sys_info(self):
+        print("Opening System Info...")
         running = True
         while running:
             image = Image.new("RGB", (self.width, self.height), "black")
             draw = ImageDraw.Draw(image)
             
-            # Stats
             cpu = psutil.cpu_percent()
             temp = os.popen("vcgencmd measure_temp").readline().replace("temp=", "").replace("'C\n", "")
             mem = psutil.virtual_memory().percent
-            ip = socket.gethostbyname(socket.gethostname())
             
             draw.text((10, 10), "SYSTEM INFO", fill="cyan")
             draw.line([(10, 25), (118, 25)], fill="gray")
@@ -91,23 +93,32 @@ class Launcher:
             draw.text((10, 40), f"CPU: {cpu}%", fill="white")
             draw.text((10, 55), f"Temp: {temp}C", fill="white")
             draw.text((10, 70), f"RAM: {mem}%", fill="white")
-            draw.text((10, 85), f"IP: {ip}", fill="yellow")
-            draw.text((10, 110), "Press SELECT to return", fill="gray")
+            
+            draw.text((10, 100), "Key1 to Back", fill="yellow")
             
             self.disp.display(image)
             
-            if GPIO.input(PRESS) == GPIO.LOW:
+            if GPIO.input(KEY1) == GPIO.LOW or GPIO.input(PRESS) == GPIO.LOW:
                 running = False
             time.sleep(0.5)
 
-    def run_settings(self):
-        # Placeholder for settings
-        pass
+    def reboot_pi(self):
+        self.disp.clear((0, 0, 255))
+        image = Image.new("RGB", (128, 128), "blue")
+        draw = ImageDraw.Draw(image)
+        draw.text((30, 60), "REBOOTING...", fill="white")
+        self.disp.display(image)
+        time.sleep(1)
+        os.system("sudo reboot")
 
-    def __init_gpio__(self):
-        GPIO.setmode(GPIO.BCM)
-        for pin in [UP, DOWN, PRESS]:
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    def shutdown_pi(self):
+        self.disp.clear((255, 0, 0))
+        image = Image.new("RGB", (128, 128), "red")
+        draw = ImageDraw.Draw(image)
+        draw.text((30, 60), "SHUTTING DOWN...", fill="white")
+        self.disp.display(image)
+        time.sleep(1)
+        os.system("sudo poweroff")
 
     def main_loop(self):
         self.show_splash()
@@ -116,7 +127,13 @@ class Launcher:
         while True:
             self.draw_menu()
             
-            if time.time() - last_move > 0.2:
+            # Global Key Listeners
+            if GPIO.input(KEY2) == GPIO.LOW: # Shortcut to Sys Info
+                self.run_sys_info()
+            if GPIO.input(KEY3) == GPIO.LOW: # Instant Shutdown
+                self.shutdown_pi()
+
+            if time.time() - last_move > 0.15:
                 if GPIO.input(UP) == GPIO.LOW:
                     self.selected_index = (self.selected_index - 1) % len(self.menu_items)
                     last_move = time.time()
@@ -128,6 +145,7 @@ class Launcher:
                     last_move = time.time()
                     
             time.sleep(0.05)
+
 
 if __name__ == "__main__":
     launcher = Launcher()

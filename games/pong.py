@@ -131,15 +131,14 @@ class PongGame:
             
         self.display.display(image)
 
-def main():
-    print("Starting Pong Game Demo...")
-    disp = ST7735()
-    disp.init()
-    
-    # Set rotation (0, 90, 180, or 270)
-    disp.rotate(90)
-    
-    game = PongGame(disp)
+def main(display=None):
+    if display is None:
+        from drivers.st7735 import ST7735
+        display = ST7735()
+        display.init()
+        display.rotate(90)
+        
+    game = PongGame(display)
     
     try:
         while True:
@@ -152,8 +151,8 @@ def main():
                 break
     except KeyboardInterrupt:
         print("\nStopping game.")
-        disp.clear()
-        GPIO.cleanup()
+        display.clear()
+        # Do not cleanup GPIO here if running within launcher
 
 if __name__ == "__main__":
     main()

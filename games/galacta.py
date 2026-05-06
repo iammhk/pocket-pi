@@ -97,11 +97,14 @@ class GalactaGame:
 
         self.display.display(image)
 
-def main():
-    disp = ST7735()
-    disp.init()
-    disp.rotate(90)
-    game = GalactaGame(disp)
+def main(display=None):
+    if display is None:
+        from drivers.st7735 import ST7735
+        display = ST7735()
+        display.init()
+        display.rotate(90)
+        
+    game = GalactaGame(display)
     
     try:
         while True:
@@ -109,7 +112,6 @@ def main():
             game.draw()
             time.sleep(0.03)
             
-            # Key 3: Back / Exit
             if GPIO.input(KEY3) == GPIO.LOW:
                 break
     except KeyboardInterrupt:

@@ -91,17 +91,17 @@ class Launcher:
 
     def run_pong(self):
         from games import pong
-        pong.main()
+        pong.main(self.disp)
         self.__init_gpio__()
 
     def run_snake(self):
         from games import snake
-        snake.main()
+        snake.main(self.disp)
         self.__init_gpio__()
 
     def run_galacta(self):
         from games import galacta
-        galacta.main()
+        galacta.main(self.disp)
         self.__init_gpio__()
 
     def run_sys_info(self):

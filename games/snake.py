@@ -88,21 +88,24 @@ class SnakeGame:
 
         self.display.display(image)
 
-def main():
-    disp = ST7735()
-    disp.init()
-    disp.rotate(90)
-    game = SnakeGame(disp)
+def main(display=None):
+    if display is None:
+        from drivers.st7735 import ST7735
+        display = ST7735()
+        display.init()
+        display.rotate(90)
+    
+    game = SnakeGame(display)
     
     try:
         while True:
             game.update()
             game.draw()
-            time.sleep(0.1) # Slower for snake
+            time.sleep(0.1)
+            
             if game.game_over and GPIO.input(KEY1) == GPIO.LOW:
                 game.reset()
             
-            # Key 3: Back / Exit
             if GPIO.input(KEY3) == GPIO.LOW:
                 break
     except KeyboardInterrupt:

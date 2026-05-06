@@ -44,12 +44,20 @@ class VirtualKeyboard:
             for c, key in enumerate(row_keys):
                 if not key: continue
                 
+                # Default spacing
                 x = 5 + c * 20
                 y = 35 + r * 13
                 
+                # Special spacing for bottom row
+                if r == 6:
+                    x = 5 + c * 30
+                    y = 35 + r * 13 + 5
+                
                 color = "white"
                 if r == self.row and c == self.col:
-                    draw.rectangle([x-1, y-1, x+18, y+11], fill=(0, 255, 255))
+                    # Draw a wider highlight for special keys
+                    width = 28 if r == 6 else 18
+                    draw.rectangle([x-1, y-1, x+width, y+11], fill=(0, 255, 255))
                     color = "black"
                 
                 draw.text((x+2, y), key, fill=color)

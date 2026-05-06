@@ -98,8 +98,8 @@ class ST7735:
             self.row_offset = 3
         elif self.rotation == 90:
             self.command(0x36); self.data(0x70) # Landscape
-            self.column_offset = 3
-            self.row_offset = 2
+            self.column_offset = 2 # Changed from 3
+            self.row_offset = 1 # Changed from 2
         elif self.rotation == 180:
             self.command(0x36); self.data(0x00) # Portrait Inverse
             self.column_offset = 2

@@ -167,48 +167,62 @@ class Launcher:
         print("Opening Task Manager...")
         selected_proc = 0
         running = True
+        mem_history = [0] * 20 # For the graph
+        
         while running:
-            # Get top processes by CPU
+            # Get stats
+            mem = psutil.virtual_memory().percent
+            mem_history.append(mem)
+            mem_history = mem_history[-20:]
+            
             procs = []
-            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent']):
+            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
                 try:
                     procs.append(proc.info)
                 except: continue
             
-            # Sort by CPU and take top 6
             procs = sorted(procs, key=lambda x: x['cpu_percent'], reverse=True)[:6]
             
             image = Image.new("RGB", (128, 128), (20, 0, 20))
             draw = ImageDraw.Draw(image)
             draw.text((10, 5), "TASK MANAGER", fill="cyan")
+            
+            # Memory Graph (Sparkline)
+            for i in range(len(mem_history)-1):
+                x1 = 80 + i * 2
+                y1 = 15 - (mem_history[i] / 10)
+                x2 = 80 + (i+1) * 2
+                y2 = 15 - (mem_history[i+1] / 10)
+                draw.line([(x1, y1), (x2, y2)], fill=(0, 255, 0))
+            
             draw.line([(10, 18), (118, 18)], fill="gray")
             
             for i, p in enumerate(procs):
-                y = 25 + i * 15
+                y = 25 + i * 14
                 color = "white"
                 if i == selected_proc:
-                    draw.rectangle([5, y-1, 123, y+13], outline="green")
+                    draw.rectangle([5, y-1, 123, y+12], outline="green")
                     color = "green"
                 
-                name = p['name'][:10]
-                draw.text((10, y), f"{p['pid']} {name} {p['cpu_percent']}%", fill=color)
+                name = p['name'][:8]
+                draw.text((10, y), f"{p['pid']} {name} {int(p['cpu_percent'])}% {int(p['memory_percent'])}%", fill=color)
             
-            draw.text((10, 115), "K1:Kill  K3:Back", fill="yellow")
+            draw.text((5, 110), "K1:Kill K2:Rst K3:Back", fill="yellow")
             self.disp.display(image)
             
             # Inputs
             if GPIO.input(UP) == GPIO.LOW:
                 selected_proc = (selected_proc - 1) % len(procs)
-                time.sleep(0.2)
+                time.sleep(0.15)
             elif GPIO.input(DOWN) == GPIO.LOW:
                 selected_proc = (selected_proc + 1) % len(procs)
-                time.sleep(0.2)
+                time.sleep(0.15)
             elif GPIO.input(KEY1) == GPIO.LOW: # Kill
-                try:
-                    os.system(f"sudo kill -9 {procs[selected_proc]['pid']}")
-                    print(f"Killed {procs[selected_proc]['pid']}")
-                    time.sleep(0.5)
-                except: pass
+                os.system(f"sudo kill -9 {procs[selected_proc]['pid']}")
+                time.sleep(0.5)
+            elif GPIO.input(KEY2) == GPIO.LOW: # Restart (Kill and let systemd or user handle it)
+                os.system(f"sudo kill -1 {procs[selected_proc]['pid']}")
+                time.sleep(0.5)
             elif GPIO.input(KEY3) == GPIO.LOW:
                 running = False
             time.sleep(0.1)

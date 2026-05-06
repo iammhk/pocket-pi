@@ -144,22 +144,37 @@ class Launcher:
             image = Image.new("RGB", (self.width, self.height), "black")
             draw = ImageDraw.Draw(image)
             
+            # Stats
             cpu = psutil.cpu_percent()
             temp = os.popen("vcgencmd measure_temp").readline().replace("temp=", "").replace("'C\n", "")
             mem = psutil.virtual_memory().percent
+            disk = psutil.disk_usage('/').percent
             
-            draw.text((10, 10), "SYSTEM INFO", fill="cyan")
-            draw.line([(10, 25), (118, 25)], fill="gray")
+            # WiFi Signal
+            try:
+                wifi_raw = os.popen("iwconfig wlan0 | grep Quality").read()
+                quality = wifi_raw.split("Quality=")[1].split(" ")[0] if "Quality=" in wifi_raw else "0/70"
+            except: quality = "N/A"
             
-            draw.text((10, 40), f"CPU: {cpu}%", fill="white")
-            draw.text((10, 55), f"Temp: {temp}C", fill="white")
-            draw.text((10, 70), f"RAM: {mem}%", fill="white")
+            draw.text((10, 5), "SYSTEM INFO", fill="cyan")
+            draw.line([(10, 18), (118, 18)], fill="gray")
             
-            draw.text((10, 100), "Key1 to Back", fill="yellow")
+            draw.text((10, 25), f"CPU: {cpu}%", fill="white")
+            draw.text((10, 40), f"Temp: {temp}C", fill="white")
+            draw.text((10, 55), f"RAM: {mem}%", fill="white")
+            draw.text((10, 70), f"Disk: {disk}%", fill="white")
+            draw.text((10, 85), f"WiFi: {quality}", fill="yellow")
+            
+            # Draw simple bars
+            draw.rectangle([70, 28, 70+(cpu/2), 33], fill="red")
+            draw.rectangle([70, 58, 70+(mem/2), 63], fill="green")
+            draw.rectangle([70, 73, 70+(disk/2), 78], fill="blue")
+            
+            draw.text((10, 105), "Key3 to Back", fill="gray")
             
             self.disp.display(image)
             
-            if GPIO.input(KEY1) == GPIO.LOW or GPIO.input(PRESS) == GPIO.LOW:
+            if GPIO.input(KEY3) == GPIO.LOW or GPIO.input(PRESS) == GPIO.LOW:
                 running = False
             time.sleep(0.5)
 

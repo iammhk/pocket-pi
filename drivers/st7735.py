@@ -16,7 +16,7 @@ class ST7735:
         # SPI setup
         self.spi = spidev.SpiDev()
         self.spi.open(0, 0)
-        self.spi.max_speed_hz = 9000000
+        self.spi.max_speed_hz = 6000000 # Lowered for better stability
         self.spi.mode = 0b00
         
         # GPIO setup
@@ -30,8 +30,9 @@ class ST7735:
         
         self.width = 128
         self.height = 128
-        self.column_offset = 2 # As per Waveshare wiki for 128x128
-        self.row_offset = 1
+        # Standard offsets for Waveshare 1.44" 128x128
+        self.column_offset = 2
+        self.row_offset = 3
 
     def command(self, cmd):
         GPIO.output(self.DC, GPIO.LOW)
@@ -43,20 +44,19 @@ class ST7735:
 
     def reset(self):
         GPIO.output(self.RST, GPIO.HIGH)
-        time.sleep(0.01)
+        time.sleep(0.1)
         GPIO.output(self.RST, GPIO.LOW)
-        time.sleep(0.01)
+        time.sleep(0.1)
         GPIO.output(self.RST, GPIO.HIGH)
-        time.sleep(0.01)
+        time.sleep(0.1)
 
     def init(self):
         self.reset()
         
-        # Initialization sequence for ST7735S
+        # Initialization sequence (Official Waveshare ST7735S)
         self.command(0x11) # Sleep out
         time.sleep(0.12)
         
-        # ST7735S Specific initialization
         self.command(0xB1); self.data(0x01); self.data(0x2C); self.data(0x2D)
         self.command(0xB2); self.data(0x01); self.data(0x2C); self.data(0x2D)
         self.command(0xB3); self.data(0x01); self.data(0x2C); self.data(0x2D); self.data(0x01); self.data(0x2C); self.data(0x2D)
@@ -71,7 +71,7 @@ class ST7735:
         
         self.command(0xC5); self.data(0x0E) # VCOM
         
-        self.command(0x36); self.data(0xC0) # MX, MY, RGB mode (C0 = 128x128 default)
+        self.command(0x36); self.data(0x08 | 0x40 | 0x80) # MADCTL: RGB, MX, MY (0xC8)
         
         self.command(0xE0) # Gamma +
         self.data(0x02); self.data(0x1c); self.data(0x07); self.data(0x12)
@@ -106,29 +106,29 @@ class ST7735:
 
     def display(self, image):
         """ image: PIL Image object """
-        im_width, im_height = image.size
-        if im_width != self.width or im_height != self.height:
-            image = image.resize((self.width, self.height))
-            
-        self.set_window(0, 0, self.width - 1, self.height - 1)
+        # Optimized buffer conversion
+        image = image.convert("RGB")
+        img_data = image.load()
         
-        # Convert RGB888 to RGB565
-        pix = image.load()
-        buffer = []
+        buf = bytearray(self.width * self.height * 2)
         for y in range(self.height):
             for x in range(self.width):
-                r, g, b = pix[x, y]
-                # RGB565: 5 bits Red, 6 bits Green, 5 bits Blue
+                r, g, b = img_data[x, y]
+                # RGB565 conversion
                 color = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
-                buffer.append((color >> 8) & 0xFF)
-                buffer.append(color & 0xFF)
+                buf[(y * self.width + x) * 2] = (color >> 8) & 0xFF
+                buf[(y * self.width + x) * 2 + 1] = color & 0xFF
+                
+        self.set_window(0, 0, self.width - 1, self.height - 1)
+        GPIO.output(self.DC, GPIO.HIGH)
         
-        # Send in chunks to SPI
+        # Send in large chunks
         chunk_size = 4096
-        for i in range(0, len(buffer), chunk_size):
-            self.spi.writebytes(buffer[i:i+chunk_size])
+        for i in range(0, len(buf), chunk_size):
+            self.spi.writebytes(list(buf[i:i+chunk_size]))
 
     def clear(self, color=(0, 0, 0)):
         from PIL import Image
         image = Image.new("RGB", (self.width, self.height), color)
         self.display(image)
+

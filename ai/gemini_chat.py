@@ -93,7 +93,7 @@ class GeminiAssistant:
 
     def ask_gemini(self, prompt):
         if not self.api_key:
-            return "Error: No API Key found. Please add your Gemini API Key to pocket_config.json"
+            return "Error: No API Key found in pocket_config.json"
 
         self.draw_status("Thinking...")
         
@@ -110,7 +110,13 @@ class GeminiAssistant:
         
         try:
             response = requests.post(self.api_url, headers=headers, json=data, timeout=30)
-            response.raise_for_status()
+            
+            if response.status_code != 200:
+                err_msg = f"API Error {response.status_code}: {response.text}"
+                with open("ai_error.log", "a") as f:
+                    f.write(f"{time.ctime()}: {err_msg}\n")
+                return f"Error {response.status_code}. Check ai_error.log"
+                
             result = response.json()
             answer = result['choices'][0]['message']['content']
             
@@ -121,7 +127,9 @@ class GeminiAssistant:
             
             return answer
         except Exception as e:
-            return f"API Error: {str(e)}"
+            with open("ai_error.log", "a") as f:
+                f.write(f"{time.ctime()}: Exception: {str(e)}\n")
+            return f"System Error: {str(e)[:20]}..."
 
     def run(self):
         if not self.api_key:

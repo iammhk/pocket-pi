@@ -30,6 +30,7 @@ class Launcher:
         self.main_menu = [
             {"title": "Games", "icon": "🎮", "action": self.enter_games},
             {"title": "System Info", "icon": "📊", "action": self.run_sys_info},
+            {"title": "Pocket Config", "icon": "🛠️", "action": self.enter_config},
             {"title": "Power", "icon": "⚡", "action": self.enter_power},
             {"title": "Exit GUI", "icon": "🚪", "action": exit}
         ]
@@ -45,6 +46,12 @@ class Launcher:
             {"title": "Restart GUI", "icon": "🔄", "action": self.restart_gui},
             {"title": "Reboot", "icon": "⚙️", "action": self.reboot_pi},
             {"title": "Shutdown", "icon": "🔌", "action": self.shutdown_pi},
+            {"title": "Back", "icon": "⬅️", "action": self.enter_main}
+        ]
+
+        self.config_menu = [
+            {"title": "WiFi Status", "icon": "📡", "action": self.run_wifi_status},
+            {"title": "Rotate Screen", "icon": "🔄", "action": self.run_rotate_config},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
         ]
         
@@ -63,6 +70,10 @@ class Launcher:
 
     def enter_power(self):
         self.current_menu = self.power_menu
+        self.selected_index = 0
+
+    def enter_config(self):
+        self.current_menu = self.config_menu
         self.selected_index = 0
 
     def enter_main(self):
@@ -87,8 +98,10 @@ class Launcher:
             title = "POCKET PI"
         elif self.current_menu == self.games_menu:
             title = "GAMES"
-        else:
+        elif self.current_menu == self.power_menu:
             title = "POWER"
+        else:
+            title = "CONFIG"
             
         draw.rectangle([0, 0, 128, 20], fill=(40, 40, 80))
         draw.text((35, 4), title, fill="white")
@@ -145,6 +158,56 @@ class Launcher:
             if GPIO.input(KEY1) == GPIO.LOW or GPIO.input(PRESS) == GPIO.LOW:
                 running = False
             time.sleep(0.5)
+
+    def run_wifi_status(self):
+        running = True
+        while running:
+            image = Image.new("RGB", (128, 128), "black")
+            draw = ImageDraw.Draw(image)
+            
+            ssid = os.popen("iwgetid -r").read().strip() or "Not Connected"
+            ip = socket.gethostbyname(socket.gethostname())
+            
+            draw.text((10, 10), "WIFI STATUS", fill="cyan")
+            draw.line([(10, 25), (118, 25)], fill="gray")
+            draw.text((10, 40), f"SSID: {ssid}", fill="white")
+            draw.text((10, 60), f"IP: {ip}", fill="white")
+            draw.text((10, 100), "Key3 to Back", fill="yellow")
+            
+            self.disp.display(image)
+            if GPIO.input(KEY3) == GPIO.LOW or GPIO.input(KEY1) == GPIO.LOW:
+                running = False
+            time.sleep(0.5)
+
+    def run_rotate_config(self):
+        rotations = [0, 90, 180, 270]
+        curr_idx = rotations.index(self.disp.rotation) if self.disp.rotation in rotations else 1
+        
+        running = True
+        while running:
+            image = Image.new("RGB", (128, 128), (20, 20, 20))
+            draw = ImageDraw.Draw(image)
+            
+            draw.text((10, 10), "ROTATE SCREEN", fill="cyan")
+            draw.text((10, 40), f"Current: {rotations[curr_idx]}", fill="white")
+            draw.text((10, 60), "Use UP/DOWN", fill="gray")
+            draw.text((10, 80), "Key1 to SAVE", fill="green")
+            draw.text((10, 100), "Key3 to Cancel", fill="red")
+            
+            self.disp.display(image)
+            
+            if GPIO.input(UP) == GPIO.LOW:
+                curr_idx = (curr_idx - 1) % 4
+                time.sleep(0.2)
+            elif GPIO.input(DOWN) == GPIO.LOW:
+                curr_idx = (curr_idx + 1) % 4
+                time.sleep(0.2)
+            elif GPIO.input(KEY1) == GPIO.LOW:
+                self.disp.rotate(rotations[curr_idx])
+                running = False
+            elif GPIO.input(KEY3) == GPIO.LOW:
+                running = False
+            time.sleep(0.05)
 
     def reboot_pi(self):
         self.disp.clear((0, 0, 255))

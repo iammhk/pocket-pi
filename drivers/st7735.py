@@ -93,19 +93,19 @@ class ST7735:
         """ Set the display rotation: 0, 90, 180, or 270 degrees """
         self.rotation = rotation
         if self.rotation == 0:
-            self.command(0x36); self.data(0xC8) # MX, MY, RGB
+            self.command(0x36); self.data(0xC0) # Portrait
             self.column_offset = 2
             self.row_offset = 3
         elif self.rotation == 90:
-            self.command(0x36); self.data(0xA8) # MY, MV, RGB
+            self.command(0x36); self.data(0x70) # Landscape
             self.column_offset = 3
             self.row_offset = 2
         elif self.rotation == 180:
-            self.command(0x36); self.data(0x08) # RGB
+            self.command(0x36); self.data(0x00) # Portrait Inverse
             self.column_offset = 2
             self.row_offset = 1
         elif self.rotation == 270:
-            self.command(0x36); self.data(0x68) # MX, MV, RGB
+            self.command(0x36); self.data(0xA0) # Landscape Inverse
             self.column_offset = 1
             self.row_offset = 2
 

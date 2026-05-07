@@ -47,7 +47,7 @@ class Launcher:
         ]
 
         self.power_menu = [
-            {"title": "Restart GUI", "icon": "🔄", "action": self.restart_gui},
+            {"title": "Restart Pocket-Pi", "icon": "🔄", "action": self.restart_gui},
             {"title": "Reboot", "icon": "⚙️", "action": self.reboot_pi},
             {"title": "Shutdown", "icon": "🔌", "action": self.shutdown_pi},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
@@ -378,7 +378,7 @@ class Launcher:
         self.disp.clear((0, 255, 0))
         image = Image.new("RGB", (128, 128), "green")
         draw = ImageDraw.Draw(image)
-        draw.text((30, 60), "RESTARTING...", fill="white")
+        draw.text((20, 60), "RESTARTING POCKET-PI...", fill="white")
         self.disp.display(image)
         time.sleep(0.5)
         os.system("sudo systemctl restart pocket-pi.service")

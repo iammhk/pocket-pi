@@ -113,7 +113,7 @@ class PongGame:
             draw.line([(self.width // 2, i), (self.width // 2, i + 4)], fill="gray")
             
         # Draw Paddles
-        draw.rectangle([0, self.player_y, self.paddle_width, self.player_y + self.paddle_height], fill="white")
+        draw.rectangle([0, self.player_y, self.paddle_width, self.player_y + self.paddle_height], fill="blue")
         draw.rectangle([self.width - self.paddle_width, self.ai_y, self.width, self.ai_y + self.paddle_height], fill="white")
         
         # Draw Ball

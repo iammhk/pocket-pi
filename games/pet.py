@@ -5,7 +5,12 @@ import time
 import json
 import os
 import math
+import sys
 import RPi.GPIO as GPIO
+
+# Add parent directory to path for driver imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from PIL import Image, ImageDraw
 from drivers.st7735 import ST7735
 
@@ -32,24 +37,33 @@ class VirtualPet:
         self.message_time = 0
 
     def load_state(self):
+        self.default_state() # Initialize with defaults first
         if os.path.exists(SAVE_FILE):
             try:
                 with open(SAVE_FILE, "r") as f:
-                    self.state = json.load(f)
-                    # Check for time elapsed
-                    elapsed = time.time() - self.state.get("last_saved", time.time())
-                    # Decay stats based on time (1 point per 5 mins for hunger/happiness)
-                    decay = elapsed / 300
-                    self.state["hunger"] = max(0, self.state["hunger"] - decay)
-                    self.state["happiness"] = max(0, self.state["happiness"] - decay)
-                    if self.state.get("is_sleeping", False):
-                        self.state["energy"] = min(100, self.state["energy"] + (elapsed / 60))
-                    else:
-                        self.state["energy"] = max(0, self.state["energy"] - (elapsed / 600))
-            except:
-                self.default_state()
-        else:
-            self.default_state()
+                    loaded_state = json.load(f)
+                    if isinstance(loaded_state, dict):
+                        self.state.update(loaded_state)
+                        
+                        # Check for time elapsed
+                        now = time.time()
+                        last_saved = self.state.get("last_saved", now)
+                        if not isinstance(last_saved, (int, float)):
+                            last_saved = now
+                            
+                        elapsed = now - last_saved
+                        # Decay stats based on time (1 point per 5 mins for hunger/happiness)
+                        decay = elapsed / 300
+                        self.state["hunger"] = max(0, float(self.state.get("hunger", 80)) - decay)
+                        self.state["happiness"] = max(0, float(self.state.get("happiness", 80)) - decay)
+                        
+                        if self.state.get("is_sleeping", False):
+                            self.state["energy"] = min(100, float(self.state.get("energy", 80)) + (elapsed / 60))
+                        else:
+                            self.state["energy"] = max(0, float(self.state.get("energy", 80)) - (elapsed / 600))
+            except Exception as e:
+                print(f"Error loading state: {e}")
+                # default_state already set
 
     def default_state(self):
         self.state = {

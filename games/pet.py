@@ -28,10 +28,10 @@ class VirtualPet:
         self.last_tick = time.time()
         self.selected_action = 0
         self.actions = [
-            {"name": "FEED", "icon": "🍎"},
-            {"name": "PLAY", "icon": "🎾"},
-            {"name": "SLEEP", "icon": "💤"},
-            {"name": "CLEAN", "icon": "🚿"}
+            {"name": "FEED", "icon": "[F]"},
+            {"name": "PLAY", "icon": "[P]"},
+            {"name": "SLEEP", "icon": "[S]"},
+            {"name": "CLEAN", "icon": "[C]"}
         ]
         self.message = "Hello! I'm Pixel!"
         self.message_time = 0
@@ -198,14 +198,20 @@ class VirtualPet:
         self.display.display(image)
 
 def main(display=None):
-    if display is None:
-        from drivers.st7735 import ST7735
-        display = ST7735()
-        display.init()
-        display.rotate(90)
-    
-    pet = VirtualPet(display)
+    import traceback
     try:
+        if display is None:
+            from drivers.st7735 import ST7735
+            display = ST7735()
+            display.init()
+            display.rotate(90)
+        
+        # Ensure GPIO is set up for this module
+        GPIO.setmode(GPIO.BCM)
+        for pin in [UP, DOWN, LEFT, RIGHT, KEY1, KEY2, KEY3]:
+            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        
+        pet = VirtualPet(display)
         while True:
             pet.update()
             pet.draw()
@@ -213,8 +219,10 @@ def main(display=None):
                 pet.save_state()
                 break
             time.sleep(0.05)
-    except KeyboardInterrupt:
-        pet.save_state()
+    except Exception as e:
+        with open("pet_crash.log", "w") as f:
+            f.write(traceback.format_exc())
+        print(f"PET CRASHED: {e}")
 
 if __name__ == "__main__":
     main()

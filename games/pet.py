@@ -36,13 +36,20 @@ class VirtualPet:
         self.message = "Hello! I'm Pixel!"
         self.message_time = 0
         
-        # Sprite Sheet Setup
-        self.sprite_sheet = None
+        # Animation Sheet Setup
+        self.anim_sheet = None
+        self.frame_index = 0
+        self.last_frame_time = 0
+        self.animation_speed = 0.2 # Seconds per frame
+        
         try:
-            self.sprite_sheet = Image.open("assets/pet_sprites.png").convert("RGBA")
-            self.sprite_size = 256 # Base size in the 1024x1024 sheet
+            self.anim_sheet = Image.open("assets/pet_animations.png").convert("RGBA")
+            # Image is 1024x1024, 6 columns, 4 rows
+            self.cell_w = 1024 // 6
+            self.cell_h = 1024 // 4
         except:
-            print("Sprite sheet not found, using drawing mode.")
+            print("Animation sheet not found, using static sprite or drawing.")
+            self.anim_sheet = None
 
     def load_state(self):
         self.default_state() # Initialize with defaults first
@@ -141,49 +148,55 @@ class VirtualPet:
         self.message = text
         self.message_time = time.time()
 
-    def get_sprite(self):
-        # Determine frame based on state
-        col, row = 0, 0 # Default IDLE
+    def get_animated_sprite(self):
+        # Determine animation row and max frames
+        row = 0
+        max_frames = 6
         
         now = time.time()
         # Message-based (action) overrides
         if now - self.message_time < 2:
-            if "Yum" in self.message: col, row = 2, 0 # EATING
-            elif "Fun" in self.message: col, row = 3, 2 # PLAYING
-            elif "Woke" in self.message or "Zzz" in self.message: col, row = 3, 0 # SLEEPING
+            if "Yum" in self.message: 
+                row = 2 # EATING (Starts on Row 2)
+                max_frames = 12 # Row 2 and 3 together
+            elif "Woke" in self.message or "Zzz" in self.message:
+                row = 0 # Default for now
         
         # State-based
-        if self.state["is_sleeping"]: col, row = 3, 0 # SLEEPING
-        elif self.state["hunger"] < 20: col, row = 0, 1 # ANGRY
-        elif self.state["happiness"] < 20: col, row = 2, 1 # SAD
-        elif self.state["happiness"] > 80: col, row = 1, 1 # HAPPY
-        elif self.state["energy"] > 90: col, row = 1, 0 # LOOKING AROUND
+        if self.state["energy"] > 90 and row == 0:
+            row = 1 # LOOKING AROUND
         
-        # Crop and resize
-        left = col * 256
-        top = row * 341 # Roughly 1024/3
-        right = left + 256
-        bottom = top + 256 # We want a square crop for the character
+        # Update frame index based on time
+        if now - self.last_frame_time > self.animation_speed:
+            self.frame_index = (self.frame_index + 1) % max_frames
+            self.last_frame_time = now
+            
+        # Calculate crop coordinates
+        f_col = self.frame_index % 6
+        f_row = row + (self.frame_index // 6)
         
-        sprite = self.sprite_sheet.crop((left, top, right, bottom))
-        return sprite.resize((64, 64), Image.NEAREST)
+        left = f_col * self.cell_w
+        top = f_row * self.cell_h
+        right = left + self.cell_w
+        bottom = top + self.cell_h
+        
+        sprite = self.anim_sheet.crop((left, top, right, bottom))
+        # Remove labels/boxes if possible by shrinking the crop slightly
+        sprite = sprite.crop((10, 20, self.cell_w - 10, self.cell_h - 10))
+        return sprite.resize((80, 80), Image.NEAREST)
 
     def draw_pet(self, draw, image):
-        cx, cy = 64, 70
+        cx, cy = 64, 75
         
-        if self.sprite_sheet:
+        if self.anim_sheet:
             try:
-                sprite = self.get_sprite()
-                # Apply bounce if not sleeping
-                offset = int(math.sin(time.time() * 4) * 3) if not self.state["is_sleeping"] else 0
-                
-                # Paste sprite onto the main image
-                # Calculate box: (x1, y1, x2, y2)
-                pos = (cx - 32, cy - 32 + offset)
+                sprite = self.get_animated_sprite()
+                # Paste sprite
+                pos = (cx - 40, cy - 40)
                 image.paste(sprite, pos, sprite)
                 return
             except Exception as e:
-                print(f"Sprite draw error: {e}")
+                pass # Fallback
 
         # Fallback to simple drawing
         offset = int(math.sin(time.time() * 4) * 3) if not self.state["is_sleeping"] else 0

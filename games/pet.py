@@ -28,10 +28,10 @@ class VirtualPet:
         self.last_tick = time.time()
         self.selected_action = 0
         self.actions = [
-            {"name": "FEED", "icon": "[F]"},
-            {"name": "PLAY", "icon": "[P]"},
-            {"name": "SLEEP", "icon": "[S]"},
-            {"name": "CLEAN", "icon": "[C]"}
+            {"name": "FEED", "icon": "🍎"},
+            {"name": "PLAY", "icon": "🎾"},
+            {"name": "SLEEP", "icon": "💤"},
+            {"name": "CLEAN", "icon": "🚿"}
         ]
         self.message = "Hello! I'm Pixel!"
         self.message_time = 0
@@ -189,10 +189,10 @@ class VirtualPet:
         draw.rectangle([0, 118, 128, 128], fill=(50, 50, 50))
         for i, action in enumerate(self.actions):
             x = i * 32
-            if i == self.selected_index:
+            if i == self.selected_action:
                 draw.rectangle([x, 118, x+32, 128], fill=(100, 100, 100))
             draw.text((x+5, 118), action["icon"], fill="white")
-            if i == self.selected_index:
+            if i == self.selected_action:
                 draw.text((x+5, 105), action["name"], fill="yellow")
 
         self.display.display(image)

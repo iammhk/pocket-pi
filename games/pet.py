@@ -35,6 +35,14 @@ class VirtualPet:
         ]
         self.message = "Hello! I'm Pixel!"
         self.message_time = 0
+        
+        # Sprite Sheet Setup
+        self.sprite_sheet = None
+        try:
+            self.sprite_sheet = Image.open("assets/pet_sprites.png").convert("RGBA")
+            self.sprite_size = 256 # Base size in the 1024x1024 sheet
+        except:
+            print("Sprite sheet not found, using drawing mode.")
 
     def load_state(self):
         self.default_state() # Initialize with defaults first
@@ -133,30 +141,53 @@ class VirtualPet:
         self.message = text
         self.message_time = time.time()
 
-    def draw_pet(self, draw):
+    def get_sprite(self):
+        # Determine frame based on state
+        col, row = 0, 0 # Default IDLE
+        
+        now = time.time()
+        # Message-based (action) overrides
+        if now - self.message_time < 2:
+            if "Yum" in self.message: col, row = 2, 0 # EATING
+            elif "Fun" in self.message: col, row = 3, 2 # PLAYING
+            elif "Woke" in self.message or "Zzz" in self.message: col, row = 3, 0 # SLEEPING
+        
+        # State-based
+        if self.state["is_sleeping"]: col, row = 3, 0 # SLEEPING
+        elif self.state["hunger"] < 20: col, row = 0, 1 # ANGRY
+        elif self.state["happiness"] < 20: col, row = 2, 1 # SAD
+        elif self.state["happiness"] > 80: col, row = 1, 1 # HAPPY
+        elif self.state["energy"] > 90: col, row = 1, 0 # LOOKING AROUND
+        
+        # Crop and resize
+        left = col * 256
+        top = row * 341 # Roughly 1024/3
+        right = left + 256
+        bottom = top + 256 # We want a square crop for the character
+        
+        sprite = self.sprite_sheet.crop((left, top, right, bottom))
+        return sprite.resize((64, 64), Image.NEAREST)
+
+    def draw_pet(self, draw, image):
         cx, cy = 64, 70
-        # Simple bouncing animation
+        
+        if self.sprite_sheet:
+            try:
+                sprite = self.get_sprite()
+                # Apply bounce if not sleeping
+                offset = int(math.sin(time.time() * 4) * 3) if not self.state["is_sleeping"] else 0
+                
+                # Paste sprite onto the main image
+                # Calculate box: (x1, y1, x2, y2)
+                pos = (cx - 32, cy - 32 + offset)
+                image.paste(sprite, pos, sprite)
+                return
+            except Exception as e:
+                print(f"Sprite draw error: {e}")
+
+        # Fallback to simple drawing
         offset = int(math.sin(time.time() * 4) * 3) if not self.state["is_sleeping"] else 0
-        
-        # Body
-        body_color = (100, 200, 100) if self.state["happiness"] > 50 else (150, 150, 150)
-        draw.ellipse([cx-20, cy-15+offset, cx+20, cy+15+offset], fill=body_color, outline="black")
-        
-        if not self.state["is_sleeping"]:
-            # Eyes
-            draw.ellipse([cx-10, cy-5+offset, cx-6, cy-1+offset], fill="black")
-            draw.ellipse([cx+6, cy-5+offset, cx+10, cy-1+offset], fill="black")
-            # Mouth
-            if self.state["hunger"] < 30:
-                draw.line([cx-5, cy+5+offset, cx+5, cy+5+offset], fill="black") # Flat
-            else:
-                draw.arc([cx-5, cy+2+offset, cx+5, cy+8+offset], 0, 180, fill="black") # Smile
-        else:
-            # Sleeping eyes
-            draw.line([cx-10, cy-3, cx-6, cy-3], fill="black")
-            draw.line([cx+6, cy-3, cx+10, cy-3], fill="black")
-            draw.text((cx+15, cy-20), "Z", fill="white")
-            draw.text((cx+22, cy-28), "z", fill="white")
+        # ... (rest of old drawing code)
 
     def draw(self):
         # Background: Sky or Night
@@ -178,7 +209,7 @@ class VirtualPet:
         draw_bar(80, 18, self.state['energy'], "blue")
 
         # Draw Pet
-        self.draw_pet(draw)
+        self.draw_pet(draw, image)
 
         # Draw Message
         if time.time() - self.message_time < 3:

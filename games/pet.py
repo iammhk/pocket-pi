@@ -4,6 +4,7 @@
 import time
 import json
 import os
+import math
 import RPi.GPIO as GPIO
 from PIL import Image, ImageDraw
 from drivers.st7735 import ST7735
@@ -163,7 +164,6 @@ class VirtualPet:
         draw_bar(80, 18, self.state['energy'], "blue")
 
         # Draw Pet
-        import math
         self.draw_pet(draw)
 
         # Draw Message

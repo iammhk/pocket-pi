@@ -45,6 +45,7 @@ class Launcher:
             {"title": "Breakout", "icon": "🧱", "action": self.run_breakout},
             {"title": "2048", "icon": "🔢", "action": self.run_2048},
             {"title": "Particle Storm", "icon": "✨", "action": self.run_particles},
+            {"title": "Pocket Pet", "icon": "🐶", "action": self.run_pet},
             {"title": "Galacta", "icon": "🚀", "action": self.run_galacta},
             {"title": "Tetris", "icon": "🧱", "action": self.run_tetris},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
@@ -176,6 +177,11 @@ class Launcher:
     def run_particles(self):
         from games import particles
         particles.main(self.disp)
+        self.__init_gpio__()
+
+    def run_pet(self):
+        from games import pet
+        pet.main(self.disp)
         self.__init_gpio__()
 
     def run_galacta(self):

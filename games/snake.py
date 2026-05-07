@@ -48,13 +48,13 @@ class SnakeGame:
         elif GPIO.input(RIGHT) == GPIO.LOW and self.direction != (-8, 0):
             self.direction = (8, 0)
 
-        # Move
-        new_head = (self.snake[0][0] + self.direction[0], self.snake[0][1] + self.direction[1])
+        # Move (with wrapping)
+        new_x = (self.snake[0][0] + self.direction[0]) % self.width
+        new_y = (self.snake[0][1] + self.direction[1]) % self.height
+        new_head = (new_x, new_y)
 
-        # Wall Collision
-        if (new_head[0] < 0 or new_head[0] >= self.width or 
-            new_head[1] < 0 or new_head[1] >= self.height or 
-            new_head in self.snake):
+        # Self Collision
+        if new_head in self.snake:
             self.game_over = True
             return
 

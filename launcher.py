@@ -59,6 +59,7 @@ class Launcher:
         self.config_menu = [
             {"title": "WiFi Status", "icon": "📡", "action": self.run_wifi_status},
             {"title": "Bluetooth", "icon": "🔵", "action": self.run_bt_status},
+            {"title": "Update Pocket Pi", "icon": "📥", "action": self.run_update},
             {"title": "Keyboard Test", "icon": "⌨️", "action": self.run_keyboard_test},
             {"title": "Rotate Screen", "icon": "🔄", "action": self.run_rotate_config},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
@@ -336,6 +337,46 @@ class Launcher:
             elif GPIO.input(KEY3) == GPIO.LOW:
                 running = False
             time.sleep(0.1)
+
+    def run_update(self):
+        image = Image.new("RGB", (self.width, self.height), "black")
+        draw = ImageDraw.Draw(image)
+        draw.text((10, 40), "UPDATING...", fill="cyan")
+        draw.text((10, 60), "Please wait...", fill="white")
+        self.disp.display(image)
+        
+        try:
+            # Run git pull
+            res = os.popen("git pull").read()
+            
+            image = Image.new("RGB", (self.width, self.height), "black")
+            draw = ImageDraw.Draw(image)
+            draw.text((10, 10), "UPDATE RESULT", fill="green")
+            
+            if "Already up to date" in res:
+                draw.text((10, 40), "No updates found.", fill="white")
+            else:
+                draw.text((10, 40), "Update Success!", fill="green")
+                draw.text((10, 60), "Restarting GUI...", fill="yellow")
+                self.disp.display(image)
+                time.sleep(2)
+                self.restart_gui()
+                return
+            
+            draw.text((10, 100), "Key3 to Back", fill="yellow")
+            self.disp.display(image)
+            while GPIO.input(KEY3) == GPIO.HIGH:
+                time.sleep(0.1)
+        except Exception as e:
+            image = Image.new("RGB", (self.width, self.height), "black")
+            draw = ImageDraw.Draw(image)
+            draw.text((10, 10), "UPDATE ERROR", fill="red")
+            draw.text((10, 40), str(e)[:20], fill="white")
+            draw.text((10, 100), "Key3 to Back", fill="yellow")
+            self.disp.display(image)
+            while GPIO.input(KEY3) == GPIO.HIGH:
+                time.sleep(0.1)
+        self.__init_gpio__()
 
     def run_keyboard_test(self):
         from utils.keyboard import VirtualKeyboard

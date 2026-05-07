@@ -41,6 +41,9 @@ class Launcher:
         self.games_menu = [
             {"title": "Ping Pong", "icon": "🏓", "action": self.run_pong},
             {"title": "Snake", "icon": "🐍", "action": self.run_snake},
+            {"title": "Flappy Bird", "icon": "🐦", "action": self.run_flappy},
+            {"title": "Breakout", "icon": "🧱", "action": self.run_breakout},
+            {"title": "2048", "icon": "🔢", "action": self.run_2048},
             {"title": "Galacta", "icon": "🚀", "action": self.run_galacta},
             {"title": "Tetris", "icon": "🧱", "action": self.run_tetris},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
@@ -151,6 +154,21 @@ class Launcher:
     def run_snake(self):
         from games import snake
         snake.main(self.disp)
+        self.__init_gpio__()
+
+    def run_flappy(self):
+        from games import flappy
+        flappy.main(self.disp)
+        self.__init_gpio__()
+
+    def run_breakout(self):
+        from games import breakout
+        breakout.main(self.disp)
+        self.__init_gpio__()
+
+    def run_2048(self):
+        from games import game2048
+        game2048.main(self.disp)
         self.__init_gpio__()
 
     def run_galacta(self):

@@ -44,6 +44,7 @@ class Launcher:
             {"title": "Flappy Bird", "icon": "🐦", "action": self.run_flappy},
             {"title": "Breakout", "icon": "🧱", "action": self.run_breakout},
             {"title": "2048", "icon": "🔢", "action": self.run_2048},
+            {"title": "Particle Storm", "icon": "✨", "action": self.run_particles},
             {"title": "Galacta", "icon": "🚀", "action": self.run_galacta},
             {"title": "Tetris", "icon": "🧱", "action": self.run_tetris},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
@@ -170,6 +171,11 @@ class Launcher:
     def run_2048(self):
         from games import game2048
         game2048.main(self.disp)
+        self.__init_gpio__()
+
+    def run_particles(self):
+        from games import particles
+        particles.main(self.disp)
         self.__init_gpio__()
 
     def run_galacta(self):

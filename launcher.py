@@ -42,6 +42,7 @@ class Launcher:
             {"title": "Ping Pong", "icon": "🏓", "action": self.run_pong},
             {"title": "Snake", "icon": "🐍", "action": self.run_snake},
             {"title": "Galacta", "icon": "🚀", "action": self.run_galacta},
+            {"title": "Tetris", "icon": "🧱", "action": self.run_tetris},
             {"title": "Back", "icon": "⬅️", "action": self.enter_main}
         ]
 
@@ -155,6 +156,11 @@ class Launcher:
     def run_galacta(self):
         from games import galacta
         galacta.main(self.disp)
+        self.__init_gpio__()
+
+    def run_tetris(self):
+        from games import tetris
+        tetris.main(self.disp)
         self.__init_gpio__()
 
     def run_ai_chat(self):

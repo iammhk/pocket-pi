@@ -31,6 +31,7 @@ class Launcher:
         # Menu Definitions
         self.main_menu = [
             {"title": "Games", "icon": "🎮", "action": self.enter_games},
+            {"title": "Camera", "icon": "📷", "action": self.run_camera},
             {"title": "AI Assistant", "icon": "🤖", "action": self.run_ai_chat},
             {"title": "System Info", "icon": "📊", "action": self.run_sys_info},
             {"title": "Task Manager", "icon": "📝", "action": self.run_task_manager},
@@ -197,6 +198,11 @@ class Launcher:
     def run_ai_chat(self):
         from ai import gemini_chat
         gemini_chat.main(self.disp)
+        self.__init_gpio__()
+
+    def run_camera(self):
+        from utils import camera_app
+        camera_app.main(self.disp)
         self.__init_gpio__()
 
     def run_sys_info(self):

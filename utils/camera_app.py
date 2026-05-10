@@ -20,6 +20,53 @@ KEY1 = 21
 KEY2 = 20
 KEY3 = 16
 
+def show_gallery(disp, photo_dir):
+    """Displays a simple gallery of taken photos."""
+    photos = [f for f in os.listdir(photo_dir) if f.endswith(".jpg")]
+    photos.sort(reverse=True) # Newest first
+    
+    if not photos:
+        img = Image.new("RGB", (128, 128), "black")
+        draw = ImageDraw.Draw(img)
+        draw.text((15, 50), "NO PHOTOS FOUND", fill="red")
+        draw.text((30, 70), "K1: BACK", fill="yellow")
+        disp.display(img)
+        while GPIO.input(KEY1) == GPIO.HIGH:
+            time.sleep(0.1)
+        return
+
+    idx = 0
+    while True:
+        try:
+            # Load and display photo
+            img_path = os.path.join(photo_dir, photos[idx])
+            img = Image.open(img_path).resize((128, 128))
+            
+            # Overlay info
+            draw = ImageDraw.Draw(img)
+            draw.rectangle([0, 0, 128, 15], fill=(0, 0, 0, 150))
+            draw.text((5, 2), f"GALLERY {idx+1}/{len(photos)}", fill="cyan")
+            draw.rectangle([0, 113, 128, 128], fill=(0, 0, 0, 150))
+            draw.text((5, 115), "K1:BACK UP/DN:NAV", fill="yellow")
+            
+            disp.display(img)
+            
+            # Navigation
+            start_time = time.time()
+            while time.time() - start_time < 0.2:
+                if GPIO.input(KEY1) == GPIO.LOW:
+                    return
+                if GPIO.input(UP) == GPIO.LOW:
+                    idx = (idx - 1) % len(photos)
+                    break
+                if GPIO.input(DOWN) == GPIO.LOW:
+                    idx = (idx + 1) % len(photos)
+                    break
+                time.sleep(0.01)
+        except Exception as e:
+            print(f"Gallery Error: {e}")
+            return
+
 def main(disp):
     camera = None
     mode = None
@@ -37,7 +84,6 @@ def main(disp):
             camera = Picamera2()
             config = camera.create_preview_configuration(main={"format": "RGB888", "size": (128, 128)})
             camera.configure(config)
-            camera.set_controls({"Rotation": 90}) # 90 degree clockwise
             camera.start()
             mode = "picamera2"
         except Exception as e:
@@ -52,7 +98,6 @@ def main(disp):
             from picamera import PiCamera
             try:
                 camera = PiCamera()
-                camera.rotation = 90 # 90 degree clockwise
                 camera.resolution = (128, 128)
                 camera.framerate = 30
                 time.sleep(0.5)
@@ -101,6 +146,9 @@ def main(disp):
                 stream.seek(0)
                 img = Image.open(stream).convert("RGB")
             
+            # Rotate 90 degree clockwise in software
+            img = img.rotate(-90)
+            
             # Draw UI
             draw = ImageDraw.Draw(img)
             
@@ -118,7 +166,7 @@ def main(disp):
             draw.rectangle([0, 0, 128, 15], fill=(0, 0, 0, 100))
             draw.text((5, 2), f"📷 {mode.upper()} PREVIEW", fill="white")
             draw.rectangle([0, 113, 128, 128], fill=(0, 0, 0, 100))
-            draw.text((5, 115), "K1:SNAP  K3:EXIT", fill="yellow")
+            draw.text((5, 115), "K1:SNAP K2:GALLY K3:EXIT", fill="yellow")
 
             disp.display(img)
 
@@ -140,9 +188,18 @@ def main(disp):
                     camera.capture(filename)
                     camera.resolution = old_res
                 
+                # Rotate the saved photo file
+                with Image.open(filename) as saved_img:
+                    rotated_img = saved_img.rotate(-90, expand=True)
+                    rotated_img.save(filename)
+                
                 show_message = "PHOTO SAVED!"
                 message_time = time.time()
                 time.sleep(0.3)
+
+            if GPIO.input(KEY2) == GPIO.LOW:
+                show_gallery(disp, photo_dir)
+                time.sleep(0.2)
 
             if GPIO.input(KEY3) == GPIO.LOW:
                 running = False

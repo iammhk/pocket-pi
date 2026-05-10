@@ -24,12 +24,18 @@ def main(disp):
     camera = None
     mode = None
     
+    # Initialize GPIO pins
+    GPIO.setmode(GPIO.BCM)
+    for pin in [UP, DOWN, LEFT, RIGHT, PRESS, KEY1, KEY2, KEY3]:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
     # Try to initialize Picamera2 (Modern stack)
     try:
         from picamera2 import Picamera2
         camera = Picamera2()
         config = camera.create_preview_configuration(main={"format": "RGB888", "size": (128, 128)})
         camera.configure(config)
+        camera.set_controls({"Rotation": 90}) # 90 degree clockwise
         camera.start()
         mode = "picamera2"
     except Exception:
@@ -37,6 +43,7 @@ def main(disp):
         try:
             from picamera import PiCamera
             camera = PiCamera()
+            camera.rotation = 90 # 90 degree clockwise
             camera.resolution = (128, 128)
             camera.framerate = 30
             time.sleep(0.5)

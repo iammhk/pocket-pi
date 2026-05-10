@@ -38,9 +38,9 @@ def show_gallery(disp, photo_dir):
     idx = 0
     while True:
         try:
-            # Load and display photo
+            # Load and display photo (rotate for device preview)
             img_path = os.path.join(photo_dir, photos[idx])
-            img = Image.open(img_path).resize((128, 128))
+            img = Image.open(img_path).resize((128, 128)).rotate(-90)
             
             # Overlay info
             draw = ImageDraw.Draw(img)
@@ -82,7 +82,11 @@ def main(disp):
         from picamera2 import Picamera2
         try:
             camera = Picamera2()
-            config = camera.create_preview_configuration(main={"format": "RGB888", "size": (128, 128)})
+            # Dual stream: main for 128x128 preview, still for 5MP capture
+            config = camera.create_still_configuration(
+                main={"format": "RGB888", "size": (128, 128)},
+                still={"format": "JPEG", "size": (2592, 1944)}
+            )
             camera.configure(config)
             camera.start()
             mode = "picamera2"
@@ -179,7 +183,7 @@ def main(disp):
                 flash = Image.new("RGB", (128, 128), "white")
                 disp.display(flash)
                 
-                # Take photo
+                # Take photo (instant capture, no software rotation)
                 if mode == "picamera2":
                     camera.capture_file(filename)
                 else:
@@ -187,11 +191,6 @@ def main(disp):
                     camera.resolution = (2592, 1944) # v1.3 max res
                     camera.capture(filename)
                     camera.resolution = old_res
-                
-                # Rotate the saved photo file
-                with Image.open(filename) as saved_img:
-                    rotated_img = saved_img.rotate(-90, expand=True)
-                    rotated_img.save(filename)
                 
                 show_message = "PHOTO SAVED!"
                 message_time = time.time()

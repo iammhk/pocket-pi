@@ -140,7 +140,8 @@ def main(disp):
             # Capture frame for preview
             if mode == "picamera2":
                 img_array = camera.capture_array()
-                img = Image.fromarray(img_array).convert("RGB")
+                # Swap BGR to RGB for correct preview colors
+                img = Image.fromarray(img_array[..., ::-1]).convert("RGB")
             else:
                 stream = io.BytesIO()
                 camera.capture(stream, format='jpeg', use_video_port=True, resize=(128, 128))

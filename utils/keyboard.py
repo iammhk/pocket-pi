@@ -11,7 +11,7 @@ KEY1, KEY2, KEY3 = 21, 20, 16
 
 class VirtualKeyboard:
     def __init__(self, display):
-        self.display = display
+        self.display = display 
         self.width, self.height = 128, 128
         self.keys = [
             ['A','B','C','D','E','F'],

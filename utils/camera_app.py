@@ -82,11 +82,8 @@ def main(disp):
         from picamera2 import Picamera2
         try:
             camera = Picamera2()
-            # Dual stream: main for 128x128 preview, still for 5MP capture
-            config = camera.create_still_configuration(
-                main={"format": "RGB888", "size": (128, 128)},
-                still={"format": "JPEG", "size": (2592, 1944)}
-            )
+            # Try to create a configuration with at least a preview stream
+            config = camera.create_preview_configuration(main={"format": "RGB888", "size": (128, 128)})
             camera.configure(config)
             camera.start()
             mode = "picamera2"

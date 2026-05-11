@@ -53,6 +53,7 @@ class Launcher:
         ]
 
         self.power_menu = [
+            {"title": "Sleep", "icon": "🌙", "action": self.run_sleep},
             {"title": "Restart Pocket-Pi", "icon": "🔄", "action": self.restart_gui},
             {"title": "Reboot", "icon": "⚙️", "action": self.reboot_pi},
             {"title": "Shutdown", "icon": "🔌", "action": self.shutdown_pi},
@@ -442,6 +443,34 @@ class Launcher:
                 running = False
             time.sleep(0.05)
 
+    def run_sleep(self):
+        # 1. Underclock (set governor to powersave)
+        try:
+            os.system("echo powersave > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")
+        except: pass
+        
+        # 2. Turn off display
+        self.disp.power_off()
+        
+        # 3. Wait for any key press to wake up
+        time.sleep(0.5) # Wait a bit to avoid instant wake if button held
+        waking = False
+        while not waking:
+            for pin in [UP, DOWN, LEFT, RIGHT, PRESS, KEY1, KEY2, KEY3]:
+                if GPIO.input(pin) == GPIO.LOW:
+                    waking = True
+                    break
+            time.sleep(0.1)
+            
+        # 4. Restore clock (set governor to ondemand)
+        try:
+            os.system("echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")
+        except: pass
+        
+        # 5. Turn on display
+        self.disp.power_on()
+        time.sleep(0.2)
+
     def reboot_pi(self):
         self.disp.clear((0, 0, 255))
         image = Image.new("RGB", (128, 128), "blue")
@@ -466,7 +495,9 @@ class Launcher:
         draw = ImageDraw.Draw(image)
         draw.text((30, 60), "SHUTTING DOWN...", fill="white")
         self.disp.display(image)
-        time.sleep(1)
+        time.sleep(1.5)
+        self.disp.power_off()
+        time.sleep(0.5)
         os.system("sudo poweroff")
 
     def main_loop(self):

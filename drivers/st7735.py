@@ -153,3 +153,14 @@ class ST7735:
         image = Image.new("RGB", (self.width, self.height), color)
         self.display(image)
 
+    def power_off(self):
+        """Turn off display and backlight"""
+        self.clear((0, 0, 0))
+        self.command(0x28) # Display OFF
+        GPIO.output(self.BL, GPIO.LOW) # Backlight OFF
+
+    def power_on(self):
+        """Turn on display and backlight"""
+        GPIO.output(self.BL, GPIO.HIGH) # Backlight ON
+        self.command(0x29) # Display ON
+
